@@ -1,13 +1,13 @@
 """Adds functionality to loan out equipment"""
 
+from equipmentloan import urls
 from plugin import InvenTreePlugin
-
-from plugin.mixins import SettingsMixin, UserInterfaceMixin
+from plugin.mixins import SettingsMixin, UserInterfaceMixin, UrlsMixin
 
 from . import PLUGIN_VERSION
 
 
-class EquipmentLoan(SettingsMixin, UserInterfaceMixin, InvenTreePlugin):
+class EquipmentLoan(SettingsMixin, UserInterfaceMixin, UrlsMixin, InvenTreePlugin):
     """EquipmentLoan - custom InvenTree plugin."""
 
     # Plugin metadata
@@ -38,7 +38,25 @@ class EquipmentLoan(SettingsMixin, UserInterfaceMixin, InvenTreePlugin):
             "description": "A custom value",
             "validator": int,
             "default": 42,
-        }
+        },
+        "EQUIPMENTLOAN_LOAN_EQUIPMENT": {
+            "name": "Allow Equipment Loan",
+            "description": "Allow equipment to be loaned out to users",
+            "validator": bool,
+            "default": True,
+        },
+        "EQUIPMENTLOAN_ALLOWED_GROUPS": {
+            "name": "Allowed Groups",
+            "description": "Comma-separated list of user group names allowed to register equipment loans. Leave empty to allow all authenticated users.",
+            "validator": str,
+            "default": "",
+        },
+        "EQUIPMENTLOAN_REQUIRE_ADMIN_APPROVAL": {
+            "name": "Require Admin Approval",
+            "description": "Require administrator approval before equipment loans are registered",
+            "validator": bool,
+            "default": False,
+        },
     }
 
     # User interface elements (from UserInterfaceMixin)
@@ -64,6 +82,20 @@ class EquipmentLoan(SettingsMixin, UserInterfaceMixin, InvenTreePlugin):
                     "foo": "bar",
                 },
             })
+            panels.append({
+                "key": "equipmentloan-panel2",
+                "title": "EquipmentLoan 2",
+                "description": "Custom panel description",
+                "icon": "ti:mood-smile:outline",
+                "source": self.plugin_static_file(
+                    "Panel2.js:renderEquipmentLoanPanel2"
+                ),
+                "context": {
+                    # Provide additional context data to the panel
+                    "settings": self.get_settings_dict(),
+                    "foo": "bar",
+                },
+            })
 
         return panels
 
@@ -71,25 +103,42 @@ class EquipmentLoan(SettingsMixin, UserInterfaceMixin, InvenTreePlugin):
     def get_ui_dashboard_items(self, request, context: dict, **kwargs):
         """Return a list of custom dashboard items to be rendered in the InvenTree user interface."""
 
-        # Example: only display for 'staff' users
-        if not request.user or not request.user.is_staff:
-            return []
-
         items = []
 
+        # Equipment Loan Management - accessible to all users
         items.append({
-            "key": "equipmentloan-dashboard",
-            "title": "EquipmentLoan Dashboard Item",
-            "description": "Custom dashboard item",
-            "icon": "ti:dashboard:outline",
+            "key": "equipmentloan-management",
+            "title": "Equipment Loans",
+            "description": "Manage equipment loans and track borrowing",
+            "icon": "ti:package:outline",
             "source": self.plugin_static_file(
-                "Dashboard.js:renderEquipmentLoanDashboardItem"
+                "LoanManagement.js:renderEquipmentLoanManagement"
             ),
             "context": {
-                # Provide additional context data to the dashboard item
                 "settings": self.get_settings_dict(),
-                "bar": "foo",
             },
         })
 
         return items
+
+    # Custom navigation items (top navigation)
+    def get_ui_navigation_items(self, request, context, **kwargs):
+        """Return a list of custom navigation items for the top navigation.
+
+        Uses the UserInterfaceMixin contract (as in SampleUI) to register a
+        navigation entry which will render the plugin component.
+        """
+        return [
+            {
+                "key": "equipmentloan-management",
+                "title": "Equipment Loans",
+                "icon": "ti:package:outline",
+                # Use a URL option so the top-navigation will open our plugin page
+                "options": {
+                    "url": "/plugins/equipmentloan/page/",
+                },
+            }
+        ]
+
+    def setup_urls(self):
+        return urls.urlpatterns

@@ -47,8 +47,10 @@ export default defineConfig({
       preserveEntrySignatures: "exports-only",
       input: [
         './src/Panel.tsx',
+        './src/Panel2.tsx',
         './src/Dashboard.tsx',
         './src/Settings.tsx',
+        './src/LoanManagement.tsx',
       ],
       output: {
         dir: '../equipmentloan/static',

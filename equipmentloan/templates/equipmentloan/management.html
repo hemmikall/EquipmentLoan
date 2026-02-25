@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Equipment Loan Management</title>
+</head>
+<body>
+  <div id="equipmentloan-root"></div>
+
+  <script type="module">
+    try {
+      import('{% static "plugins/equipmentloan/LoanManagement.js" %}').then(module => {
+        const render = module.renderEquipmentLoanManagement;
+        const root = document.getElementById('equipmentloan-root');
+        if (!root) return;
+
+        if (window.ReactDOM && window.ReactDOM.createRoot) {
+          window.ReactDOM.createRoot(root).render(render({}));
+        } else if (window.ReactDOM && window.ReactDOM.render) {
+          window.ReactDOM.render(render({}), root);
+        } else {
+          console.error('ReactDOM not available to mount plugin UI');
+        }
+      }).catch(err => {
+        console.error('Failed to load LoanManagement bundle:', err);
+      });
+    } catch (e) {
+      console.error('Error importing LoanManagement bundle:', e);
+    }
+  </script>
+</body>
+</html>

@@ -18,12 +18,31 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+interface PluginSettings {
+  CUSTOM_VALUE: any;
+  EQUIPMENTLOAN_LOAN_EQUIPMENT: boolean;
+}
+
+export function useMyPluginSettings() {
+  const [settings, setSettings] = useState<PluginSettings | null>(null);
+
+  useEffect(() => {
+    fetch('/plugin/equipmentloan/settings/', {
+      credentials: 'include'
+    })
+      .then((res) => res.json())
+      .then((data) => setSettings(data));
+  }, []);
+
+  return settings;
+}
+
 /**
  * Render a custom panel with the provided context.
  * Refer to the InvenTree documentation for the context interface
  * https://docs.inventree.org/en/latest/plugins/mixins/ui/#plugin-context
  */
-function EquipmentLoanPanel({ context }: { context: InvenTreePluginContext }) {
+function EquipmentLoanPanel2({ context }: { context: InvenTreePluginContext }) {
   // React hooks can be used within plugin components
   useEffect(() => {
     console.log('useEffect in plugin component:');
@@ -87,6 +106,9 @@ function EquipmentLoanPanel({ context }: { context: InvenTreePluginContext }) {
         <Title c={context.theme.primaryColor} order={3}>
           EquipmentLoan
         </Title>
+        <text>
+          Setting Value: {useMyPluginSettings()?.EQUIPMENTLOAN_LOAN_EQUIPMENT}
+        </text>
         <Text>This is a custom panel for the EquipmentLoan plugin.</Text>
         <SimpleGrid cols={2}>
           <Group justify='apart' wrap='nowrap' gap='sm'>
@@ -119,8 +141,8 @@ function EquipmentLoanPanel({ context }: { context: InvenTreePluginContext }) {
 }
 
 // This is the function which is called by InvenTree to render the actual panel component
-export function renderEquipmentLoanPanel(context: InvenTreePluginContext) {
+export function renderEquipmentLoanPanel2(context: InvenTreePluginContext) {
   checkPluginVersion(context);
 
-  return <EquipmentLoanPanel context={context} />;
+  return <EquipmentLoanPanel2 context={context} />;
 }
